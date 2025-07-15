@@ -35,6 +35,10 @@ Also add your details in the provided fields (Name, Position, Company).
 
 Edit the workflow to fit your business rules, or adjust the prompt for different email styles.
 
+## Run the Workflow
+
+The workflow will select a supplier, draft the email, and send it—fully automated.
+
 ---
 
 **Made with 💚 using n8n & OpenAI • By Rahul Sajeendra Nath** 
