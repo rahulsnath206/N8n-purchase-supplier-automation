@@ -1,0 +1,319 @@
+{
+  "name": "AI Purchase Order Assistant",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        -20
+      ],
+      "id": "9461f721-7f5d-4463-82cc-6d3f7ae8f0f2",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "305f7ce7-4df5-4906-a149-2233e5c9685d",
+              "name": "requestText",
+              "value": "Need 50 ergonomic office chairs delivered by next month. Budget is €4000.",
+              "type": "string"
+            },
+            {
+              "id": "b1afaa59-c08a-45f9-83e5-a820a165df2e",
+              "name": "suppliers",
+              "value": "[   {\"name\": \"ErgoPro GmbH\", \"price\": 3900, \"delivery\": \"3 weeks\", \"email\":\"rahulsnath206@gmail.com\"},   {\"name\": \"ChairExpress\", \"price\": 4000, \"delivery\": \"2 weeks\",\"email\":\"rahulsnath206@gmail.com\"},   {\"name\": \"OfficeMax\", \"price\": 4100, \"delivery\": \"1 week\",\"email\":\"rahulsnath206@gmail.com\"}]",
+              "type": "array"
+            },
+            {
+              "id": "ac2e6c5a-8b2e-4fa0-8976-15445f40596b",
+              "name": "userName",
+              "value": "Rahul",
+              "type": "string"
+            },
+            {
+              "id": "9be98575-e0d4-491a-beda-4c823d7c7a9e",
+              "name": "userPosition",
+              "value": "Procurement Analyst",
+              "type": "string"
+            },
+            {
+              "id": "7db6dba3-98a7-4cc7-8cdb-35300e8a9ff9",
+              "name": "userCompany",
+              "value": "ABC Company",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        -20
+      ],
+      "id": "9058dd22-3512-4fd0-a730-378641581eec",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Given these supplier options:\n{{ JSON.stringify($json[\"suppliers\"], null, 2) }}\nFor this procurement request: {{ $json[\"requestText\"] }}\nRecommend the best supplier for our needs and briefly explain why.\nRespond with only the supplier name.\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        300,
+        -200
+      ],
+      "id": "c2329e5e-9d11-480f-a7bf-bab398885b26",
+      "name": "Choose best supplier",
+      "alwaysOutputData": false,
+      "credentials": {
+        "openAiApi": {
+          "id": "Iv3dV6IDFV1GlK5O",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Draft a professional procurement email for the following request: {{$json[\"requestText\"]}}\nAddress it to this supplier: {{$json[\"message\"][\"content\"]}}\nSign off as:\nName: {{ $json[\"userName\"] }}\nPosition: {{ $json[\"userPosition\"] }}\nCompany: {{ $json[\"userCompany\"] }}\n\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1220,
+        -240
+      ],
+      "id": "1bfea172-3cd5-4b84-8292-78ad6616f3ab",
+      "name": "Draft Email to the supplier",
+      "credentials": {
+        "openAiApi": {
+          "id": "Iv3dV6IDFV1GlK5O",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        720,
+        0
+      ],
+      "id": "80a043e3-601b-4d75-a31a-9397521ddca1",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over all input items\nfor (const item of $input.all()) {\n  const supplierName = item.json.message.content.trim().toLowerCase();\n  const suppliers = item.json.suppliers;\n  const match = suppliers.find(\n    s => s.name.trim().toLowerCase() === supplierName\n  );\n  // Add the email field to the item\n  item.json.supplierEmail = match ? match.email : null; // null if not found\n}\n\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "id": "4aa6e307-4fcb-4a6e-8cb7-a87c6a0308db",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json[\"supplierEmail\"]}}",
+        "subject": "={{$json[\"emailSubject\"]}}",
+        "message": "={{$json[\"emailBody\"]}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2100,
+        20
+      ],
+      "id": "ee0c8941-aabf-402c-a41c-b65d08cfead0",
+      "name": "Send a message",
+      "webhookId": "00886819-eb2c-4632-9aad-60817e58c08b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ffRrfvM8RXvuCIhg",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1620,
+        20
+      ],
+      "id": "a8c7ddc7-0e57-4828-bc03-dc435a50a335",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  const fullText = item.json.message.content;\n  let subject = '';\n  let body = '';\n  if (fullText.startsWith('Subject:')) {\n    const lines = fullText.split('\\n');\n    subject = lines[0].replace('Subject:', '').trim();\n    body = lines.slice(1).join('\\n').trim();\n  } else {\n    body = fullText;\n  }\n  // Format body for HTML email (add <br> for line breaks)\n  const htmlBody = body.replace(/\\n/g, '<br>');\n\n  // Add the parsed fields back to the item\n  item.json.emailSubject = subject;\n  item.json.emailBody = htmlBody;\n}\nreturn $input.all();\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        20
+      ],
+      "id": "8ae32873-46bb-4d37-b32c-87107021f712",
+      "name": "Code1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Choose best supplier",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose best supplier": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Draft Email to the supplier",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Email to the supplier": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1d42a727-8db9-4615-9882-312b3c787ae3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d0eaae1d59b0687c7e75e0cd80aa344913427e77f06c5d89497017f7524ece9e"
+  },
+  "id": "NlpAazjeY75oO7aI",
+  "tags": []
+}
