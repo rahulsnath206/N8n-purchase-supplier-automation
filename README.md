@@ -1,4 +1,4 @@
-# Purchase Supplier Automation
+# N8n Purchase Supplier Automation
 
 Automate your supplier selection, email drafting, and sending using n8n and OpenAI.
 
@@ -19,6 +19,11 @@ Automate your supplier selection, email drafting, and sending using n8n and Open
 
 <img width="1912" height="871" alt="image" src="https://github.com/user-attachments/assets/cbb343dc-163d-45d2-8d5c-0a8993634ab7" />
 
+## Example Supplier Data
+
+<img width="597" height="488" alt="image" src="https://github.com/user-attachments/assets/3673573e-4b23-41d8-b573-ed0d3a499c1e" />
+
+Also add your details in the provided fields (Name, Position, Company).
 
 ## Requirements
 
