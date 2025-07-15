@@ -37,5 +37,5 @@ Edit the workflow to fit your business rules, or adjust the prompt for different
 
 ---
 
-**Made with 💚 using n8n & OpenAI**
+**Made with 💚 using n8n & OpenAI • By Rahul Sajeendra Nath** 
 
